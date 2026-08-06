@@ -29,6 +29,14 @@ on:
         description: 'Replay a specific hardware profile (seed from a run log). Blank = derive from the run id.'
         required: false
         default: ''
+      seats:
+        description: 'How many seats together to look for. Blank = repo variable SEATS, else 2.'
+        required: false
+        default: ''
+      show_time:
+        description: 'Which show to read seats for, e.g. 19:30 or 7:30 PM. Blank = repo variable SHOW_TIME, else 19:30.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -72,6 +80,12 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
+      # The seat picker's tests need no network and no browser, and take under
+      # a second. Cheap insurance against a run that reads the page correctly
+      # and then recommends the wrong seats.
+      - name: Test
+        run: npm test
+
       # Cache the browser download - ~150 MB, and this job runs often.
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -97,6 +111,15 @@ jobs:
           WATCH_WEEKDAY: ${{ github.event.inputs.weekday || vars.WATCH_WEEKDAY }}
           DATES_TO_CHECK: ${{ github.event.inputs.dates || vars.DATES_TO_CHECK }}
           BLOCK_ALERT_THRESHOLD: '3'
+          # Seat check: when a watched date is on sale, read the seat map for
+          # the show nearest SHOW_TIME and put the best SEATS-together in the
+          # alert. Set the SEAT_CHECK variable to 0 to turn it off.
+          SEATS: ${{ github.event.inputs.seats || vars.SEATS }}
+          SHOW_TIME: ${{ github.event.inputs.show_time || vars.SHOW_TIME }}
+          SHOW_TIME_WINDOW: ${{ vars.SHOW_TIME_WINDOW }}
+          SEAT_CHECK: ${{ vars.SEAT_CHECK }}
+          SEAT_IDEAL_ROW: ${{ vars.SEAT_IDEAL_ROW }}
+          SEAT_OPTIONS: ${{ vars.SEAT_OPTIONS }}
           # Blank falls back to GITHUB_RUN_ID + attempt, so each hourly run
           # presents a different machine. Set it to a seed printed in an earlier
           # log to reproduce that run's exact fingerprint.

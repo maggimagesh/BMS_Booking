@@ -1,6 +1,6 @@
 {
   "name": "imax-showtime-checker",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "private": true,
   "engines": {
@@ -8,6 +8,7 @@
   },
   "scripts": {
     "check": "node check.js",
+    "test": "node --test",
     "check:local": "node --env-file=.env check.js",
     "browsers": "playwright install --with-deps chromium && playwright install chrome"
   },
